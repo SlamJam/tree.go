@@ -1,0 +1,47 @@
+{
+package tree
+
+const PREV_LEVEL = "prev_level"
+}
+
+Tree <- items:(new_line / 't'* '#' .* new_line / Line)* EOF {
+    return parseTree(items.([]interface{}))
+}
+
+Line <- tabs:indent*
+    nodes:(
+        (StructNode _)+ DataNode? / (StructNode _)* DataNode
+    )
+    new_line? {
+        prev := c.globalStore[PREV_LEVEL]
+        return parseLine(tabs.([]interface{}), nodes.([]interface{}), prev, func(level int) {
+            c.globalStore[PREV_LEVEL] = level
+        })
+    }
+
+//&(_ / new_line?)
+StructNode <- (value:struct_node_value ) {
+    return parseStructnode(value.(string))
+}
+
+//&new_line?
+DataNode <- (data_prefix value:data_node_value ) {
+    return parseDatanode(value.(string))
+}
+
+struct_node_value <- non_special+ {
+    return string(c.text), nil
+}
+
+data_node_value <- non_new_line* {
+    return string(c.text), nil
+}
+
+non_special <- [^\n\t\\ ]
+non_new_line <- [^\n]
+new_line <- '\n'
+indent <- '\t'
+data_prefix <- '\\'
+_ <- ' '*
+
+EOF <- !.
