@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"strings"
 )
 
 type Node struct {
@@ -37,56 +36,20 @@ func (n *Node) addChild(ch Node) {
 	n.children = append(n.children, ch)
 }
 
-func (n *Node) GetSelfValue() string {
+func (n *Node) GetValue() string {
 	return n.value
 }
 
-func (n *Node) GetFullValue() string {
-	return strings.Join(n.GetFullValueMultiline(), "\n")
+func (n *Node) GetChildValues() MultilineValue {
+	walker := &foldChildrenWalker{}
+	WalkVLR(n, walker)
+
+	return walker.Value
 }
 
-func (n *Node) GetFullValueMultiline() []string {
-	values := make([]string, 0, len(n.children))
-	values = append(values, n.value)
+func (n *Node) GetChildValuesWithLevel(initLevel int) []LevelValuePair {
+	walker := &foldLevelWalker{}
+	WalkVLR(n, walker)
 
-	for i := range n.children {
-		node := &n.children[i]
-
-		values = append(values, node.GetFullValueMultiline()...)
-	}
-
-	return values
-}
-
-func (n *Node) GetChildFullValue() string {
-	return strings.Join(n.GetChildFullValueMultiline(), "\n")
-}
-
-func (n *Node) GetChildFullValueMultiline() []string {
-	values := make([]string, 0, len(n.children))
-
-	for i := range n.children {
-		node := &n.children[i]
-
-		values = append(values, node.GetFullValueMultiline()...)
-	}
-
-	return values
-}
-
-type LeveledValue struct {
-	Level int
-	Value string
-}
-
-func (n *Node) GetChildValueWithLevels(initLevel int) []LeveledValue {
-	values := make([]LeveledValue, 0, len(n.children))
-
-	for i := range n.children {
-		node := &n.children[i]
-		values = append(values, LeveledValue{Level: initLevel, Value: node.value})
-		values = append(values, node.GetChildValueWithLevels(initLevel+1)...)
-	}
-
-	return values
+	return walker.Values
 }

@@ -3,6 +3,7 @@ package tree
 import (
 	"testing"
 
+	"github.com/SlamJam/tree.go/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -65,17 +66,21 @@ multiline
 
 		node, ok := tree.Find("bar", "baz")
 		if assert.True(t, ok) {
-			assert.Equal(t, "baz", node.GetSelfValue())
-			assert.Equal(t, "", node.GetChildFullValue())
+			assert.Equal(t, "baz", node.GetValue())
+			val := node.GetChildValues()
+			assert.Equal(t, types.MultilineValue(nil), val)
+			assert.Equal(t, "", val.String())
 		}
 
 		node, ok = tree.Find("multiline")
 		if assert.True(t, ok) {
-			assert.Equal(t, "line1\nline2", node.GetChildFullValue())
+			val := node.GetChildValues()
+			assert.Equal(t, types.MultilineValue{"line1", "line2"}, val)
+			assert.Equal(t, "line1\nline2", val.String())
 		}
 
 		node, ok = tree.Find("multiline2", "")
 		assert.False(t, ok)
-		assert.Equal(t, "", node.GetFullValue())
+		assert.Equal(t, "", node.GetValue())
 	}
 }
